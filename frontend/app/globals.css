@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0b0f14;
+  --surface: #151c26;
+  --primary: #4c8dff;
+  --accent: #8ae0b0;
+  --danger: #ff6b6b;
+  --text: #e8eef6;
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--text);
+  max-width: 100vw;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
