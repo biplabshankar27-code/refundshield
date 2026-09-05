@@ -10,12 +10,14 @@ and persisted on a Modal Volume.
 
 | Piece | URL |
 |---|---|
-| Frontend (production) | https://frontend-theta-orcin-b99g2cl5ab.vercel.app |
+| Frontend (production) | https://refundshield-biplab.vercel.app |
 | Backend (Modal) | https://biplabshankar27-code--refundshield-api.modal.run |
 | API docs (Swagger) | https://biplabshankar27-code--refundshield-api.modal.run/docs |
 
 Verified live: `/health` ok · 3 rings served from the baked seed · CORS
-preflight passes for the Vercel origin · API URL inlined in the client bundle.
+preflight passes for the Vercel origin (regex allows any `*.vercel.app`
+domain, so project renames need no backend change) · API URL inlined in the
+client bundle.
 
 One manual step remains: in Vercel → Project **bitwisers/frontend** →
 Settings → Deployment Protection → set **Vercel Authentication** to *Off*

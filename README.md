@@ -9,13 +9,13 @@ decision in plain English · Simulate the cost of delayed review in ₹
 
 *Razorpay AI Buildathon 2026 — Track 02 · AI Risk Manager*
 
-[![Live Demo](https://img.shields.io/badge/demo-frontend_biplab.vercel.app-4C8DFF)](https://frontend-biplab.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/demo-refundshield--biplab.vercel.app-4C8DFF)](https://refundshield-biplab.vercel.app/)
 [![API](https://img.shields.io/badge/API-Modal_(Test_Mode)-8AE0B0)](https://biplabshankar27-code--refundshield-api.modal.run/docs)
 [![Tests](https://img.shields.io/badge/tests-113%20passing-8AE0B0)](#testing)
 [![Python](https://img.shields.io/badge/python-3.12-E8EEF6)](#)
 [![Next.js](https://img.shields.io/badge/next.js-15-E8EEF6)](#)
 
-[Live Demo](https://frontend-biplab.vercel.app/) ·
+[Live Demo](https://refundshield-biplab.vercel.app/) ·
 [API Docs (Swagger)](https://biplabshankar27-code--refundshield-api.modal.run/docs) ·
 [Deployment Guide](DEPLOY.md)
 
@@ -27,7 +27,7 @@ decision in plain English · Simulate the cost of delayed review in ₹
 
 | Piece | URL |
 |---|---|
-| 🎬 3D story frontend | **https://frontend-biplab.vercel.app** |
+| 🎬 3D story frontend | **https://refundshield-biplab.vercel.app** |
 | ⚙️ FastAPI backend | https://biplabshankar27-code--refundshield-api.modal.run |
 | 📚 Swagger / OpenAPI | https://biplabshankar27-code--refundshield-api.modal.run/docs |
 
