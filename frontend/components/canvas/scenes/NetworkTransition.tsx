@@ -4,13 +4,18 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
-/**
- * Scene 03 — transition: one claim becomes a network of linked customers.
- * Nodes bloom outward on a Fibonacci sphere; spokes stay subtle.
- */
-const COUNT = 42;
+import { presenceAt, useStory } from "@/lib/store";
 
-export function NetworkTransition({ active }: { active: boolean }) {
+const COUNT = 72;
+
+/**
+ * Scene 03 — transition: one claim becomes a wide network of linked
+ * customers. Nodes bloom outward on a large Fibonacci sphere as the
+ * section scrolls into view; the camera passes near the outer shell.
+ */
+const FRAUD_SET = new Set([3, 9, 14, 22, 27, 33, 38, 44, 51, 58, 63, 69]);
+
+export function NetworkTransition({ index }: { index: number }) {
   const group = useRef<THREE.Group>(null);
   const bloom = useRef(0);
 
@@ -22,35 +27,35 @@ export function NetworkTransition({ active }: { active: boolean }) {
       const r = Math.sqrt(1 - y * y);
       const theta = golden * i;
       pts.push([
-        Math.cos(theta) * r * 4.4,
-        y * 2.6,
-        Math.sin(theta) * r * 4.4,
+        Math.cos(theta) * r * 6.4,
+        y * 3.6,
+        Math.sin(theta) * r * 6.4,
       ]);
     }
     return pts;
   }, []);
 
-  const fraudSet = useMemo(
-    () => new Set([3, 9, 14, 22, 27, 33, 38]),
-    [],
-  );
-
   useFrame((state, delta) => {
     const g = group.current;
     if (!g) return;
-    const target = active ? 1 : 0.001;
+    const presence = presenceAt(index, useStory.getState().progress);
+    const target = Math.max(0.001, presence);
     g.scale.setScalar(THREE.MathUtils.damp(g.scale.x, target, 3, delta));
-    g.visible = g.scale.x > 0.01;
-    g.rotation.y += delta * 0.06;
-    if (active) bloom.current = Math.min(1, bloom.current + delta * 0.5);
-    else bloom.current = Math.max(0, bloom.current - delta * 0.8);
+    g.visible = presence > 0.02;
+    g.rotation.y += delta * 0.07;
+
+    if (presence > 0.05) {
+      bloom.current = Math.min(1, bloom.current + delta * 0.6);
+    } else {
+      bloom.current = Math.max(0, bloom.current - delta * 1.2);
+    }
 
     g.children.forEach((child, i) => {
-      if (i === 0) return; // centre node
+      if (i === 0) return;
       const stagger = THREE.MathUtils.clamp(
         (bloom.current - (i / COUNT) * 0.6) / 0.4, 0, 1);
       child.scale.setScalar(THREE.MathUtils.damp(
-        child.scale.x, 0.2 + stagger * 0.8, 4, delta));
+        child.scale.x, 0.15 + stagger * 0.85, 4, delta));
     });
     void state;
   });
@@ -58,21 +63,25 @@ export function NetworkTransition({ active }: { active: boolean }) {
   return (
     <group ref={group} scale={0.001}>
       <mesh>
-        <icosahedronGeometry args={[0.5]} />
+        <icosahedronGeometry args={[0.8]} />
         <meshStandardMaterial color="#4C8DFF" emissive="#4C8DFF"
-          emissiveIntensity={0.9} />
+          emissiveIntensity={1.1} />
       </mesh>
+      <lineSegments>
+        <edgesGeometry args={[new THREE.IcosahedronGeometry(0.8)]} />
+        <lineBasicMaterial color="#E8EEF6" transparent opacity={0.5} />
+      </lineSegments>
 
       {nodes.map((pos, i) => {
-        const fraud = fraudSet.has(i);
+        const fraud = FRAUD_SET.has(i);
         return (
           <group key={i} scale={0.001}>
             <mesh position={pos}>
-              <sphereGeometry args={[fraud ? 0.17 : 0.12, 16, 16]} />
+              <sphereGeometry args={[fraud ? 0.24 : 0.16, 18, 18]} />
               <meshStandardMaterial
                 color={fraud ? "#FF6B6B" : "#4C8DFF"}
                 emissive={fraud ? "#FF6B6B" : "#4C8DFF"}
-                emissiveIntensity={fraud ? 1.0 : 0.3}
+                emissiveIntensity={fraud ? 1.2 : 0.35}
                 transparent
                 opacity={0.95}
               />
@@ -87,7 +96,7 @@ export function NetworkTransition({ active }: { active: boolean }) {
               <lineBasicMaterial
                 color={fraud ? "#FF6B6B" : "#4C8DFF"}
                 transparent
-                opacity={fraud ? 0.5 : 0.16}
+                opacity={fraud ? 0.5 : 0.14}
               />
             </line>
           </group>

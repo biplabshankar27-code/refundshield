@@ -1,44 +1,49 @@
 "use client";
 
 import { useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-import { SECTIONS, useStory } from "@/lib/store";
+import { cameraAt, useStory } from "@/lib/store";
 
 /**
- * Cinematic camera: eases to the active section's position/target and adds
- * a subtle pointer parallax. Transitions between sections are the story.
+ * Scroll-driven cinematic camera. The whole scroll range maps to a smooth
+ * path through the six chapter keyframes; pointer movement adds parallax.
  */
 export function CameraRig() {
-  const section = useStory((s) => s.section);
-  const target = useRef(new THREE.Vector3(0, 0, 0));
-  const desiredPos = useRef(new THREE.Vector3(...SECTIONS[0].camera.pos));
-  const desiredLook = useRef(new THREE.Vector3(...SECTIONS[0].camera.look));
+  const pos = useRef(new THREE.Vector3(0, 2, 20));
+  const look = useRef(new THREE.Vector3(0, 0, 0));
+  const targetPos = useRef(new THREE.Vector3());
+  const targetLook = useRef(new THREE.Vector3());
+  const pointer = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent | MouseEvent) => {
+      pointer.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.current.y = (e.clientY / window.innerHeight) * 2 - 1;
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => window.removeEventListener("pointermove", onMove);
+  }, []);
 
   useFrame((state, delta) => {
-    const cam = SECTIONS[section].camera;
-    desiredPos.current.set(...cam.pos);
-    desiredLook.current.set(...cam.look);
+    const { pos: p, look: l } = cameraAt(useStory.getState().progress);
+    const px = pointer.current.x * 0.9;
+    const py = pointer.current.y * 0.5;
 
-    const parallaxX = state.pointer.x * 0.6;
-    const parallaxY = state.pointer.y * 0.35;
+    targetPos.current.set(p[0] + px, p[1] + py, p[2]);
+    targetLook.current.set(...l);
 
-    state.camera.position.x = THREE.MathUtils.damp(
-      state.camera.position.x, desiredPos.current.x + parallaxX, 2.2, delta);
-    state.camera.position.y = THREE.MathUtils.damp(
-      state.camera.position.y, desiredPos.current.y + parallaxY, 2.2, delta);
-    state.camera.position.z = THREE.MathUtils.damp(
-      state.camera.position.z, desiredPos.current.z, 2.2, delta);
+    pos.current.x = THREE.MathUtils.damp(pos.current.x, targetPos.current.x, 3, delta);
+    pos.current.y = THREE.MathUtils.damp(pos.current.y, targetPos.current.y, 3, delta);
+    pos.current.z = THREE.MathUtils.damp(pos.current.z, targetPos.current.z, 3, delta);
 
-    target.current.x = THREE.MathUtils.damp(
-      target.current.x, desiredLook.current.x, 2.4, delta);
-    target.current.y = THREE.MathUtils.damp(
-      target.current.y, desiredLook.current.y, 2.4, delta);
-    target.current.z = THREE.MathUtils.damp(
-      target.current.z, desiredLook.current.z, 2.4, delta);
+    look.current.x = THREE.MathUtils.damp(look.current.x, targetLook.current.x, 3, delta);
+    look.current.y = THREE.MathUtils.damp(look.current.y, targetLook.current.y, 3, delta);
+    look.current.z = THREE.MathUtils.damp(look.current.z, targetLook.current.z, 3, delta);
 
-    state.camera.lookAt(target.current);
+    state.camera.position.copy(pos.current);
+    state.camera.lookAt(look.current);
   });
 
   return null;

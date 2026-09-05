@@ -4,23 +4,25 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 
-/**
- * Scene 06 — Audit & Trust.
- * A slow helix of log entries rises around a calm shield core.
- * Accent (mint) marks verification — the only place it appears in 3D.
- */
-const LINES = 18;
+import { presenceAt, useStory } from "@/lib/store";
 
-export function AuditLedger({ active }: { active: boolean }) {
+const LINES = 24;
+
+/**
+ * Scene 06 — Audit & Trust. A wide helix of log entries rises around a
+ * calm shield core wrapped in a slow accent ring.
+ */
+export function AuditLedger({ index }: { index: number }) {
   const group = useRef<THREE.Group>(null);
   const helix = useRef<THREE.Group>(null);
+  const ring = useRef<THREE.Mesh>(null);
 
   const entries = useMemo(
     () =>
       Array.from({ length: LINES }, (_, i) => ({
-        y: -2.4 + (i / LINES) * 4.8,
-        angle: i * 0.55,
-        width: 1.2 + (i % 3) * 0.5,
+        y: -3 + (i / LINES) * 6,
+        angle: i * 0.62,
+        width: 1.1 + (i % 3) * 0.45,
       })),
     [],
   );
@@ -28,13 +30,18 @@ export function AuditLedger({ active }: { active: boolean }) {
   useFrame((state, delta) => {
     const g = group.current;
     if (!g) return;
-    const target = active ? 1 : 0.001;
+    const presence = presenceAt(index, useStory.getState().progress);
+    const target = Math.max(0.001, presence);
     g.scale.setScalar(THREE.MathUtils.damp(g.scale.x, target, 3, delta));
-    g.visible = g.scale.x > 0.01;
+    g.visible = presence > 0.02;
     if (helix.current) {
-      helix.current.rotation.y += delta * 0.22;
-      helix.current.position.y =
-        Math.sin(state.clock.elapsedTime * 0.5) * 0.18;
+      helix.current.rotation.y += delta * 0.26;
+      helix.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.22;
+    }
+    if (ring.current) {
+      ring.current.rotation.z += delta * 0.4;
+      const s = 1 + 0.03 * Math.sin(state.clock.elapsedTime * 1.4);
+      ring.current.scale.setScalar(s);
     }
   });
 
@@ -42,24 +49,28 @@ export function AuditLedger({ active }: { active: boolean }) {
     <group ref={group} scale={0.001}>
       {/* shield core */}
       <mesh>
-        <octahedronGeometry args={[0.85]} />
-        <meshStandardMaterial color="#151C26" metalness={0.4} roughness={0.25} />
+        <octahedronGeometry args={[1.15]} />
+        <meshStandardMaterial color="#151C26" metalness={0.45} roughness={0.25} />
       </mesh>
       <lineSegments>
-        <edgesGeometry args={[new THREE.OctahedronGeometry(0.85)]} />
-        <lineBasicMaterial color="#8AE0B0" transparent opacity={0.85} />
+        <edgesGeometry args={[new THREE.OctahedronGeometry(1.15)]} />
+        <lineBasicMaterial color="#8AE0B0" transparent opacity={0.9} />
       </lineSegments>
+      <mesh ref={ring} rotation={[Math.PI / 2.2, 0.2, 0]}>
+        <torusGeometry args={[2.1, 0.025, 12, 90]} />
+        <meshBasicMaterial color="#8AE0B0" transparent opacity={0.4} />
+      </mesh>
 
       <group ref={helix}>
         {entries.map((e, i) => (
           <mesh key={i}
-            position={[Math.cos(e.angle) * 2.3, e.y, Math.sin(e.angle) * 2.3]}
+            position={[Math.cos(e.angle) * 3, e.y, Math.sin(e.angle) * 3]}
             rotation={[0, -e.angle, 0]}>
-            <planeGeometry args={[e.width, 0.09]} />
+            <planeGeometry args={[e.width, 0.12]} />
             <meshBasicMaterial
               color={i % 4 === 0 ? "#8AE0B0" : "#4C8DFF"}
               transparent
-              opacity={0.55}
+              opacity={0.6}
               side={THREE.DoubleSide}
             />
           </mesh>

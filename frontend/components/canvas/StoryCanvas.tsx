@@ -1,6 +1,8 @@
 "use client";
 
+import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import { Canvas } from "@react-three/fiber";
+
 import { PALETTE } from "@/lib/theme";
 
 import { AmbientDust } from "./AmbientDust";
@@ -11,38 +13,42 @@ import { CostBars } from "./scenes/CostBars";
 import { NetworkTransition } from "./scenes/NetworkTransition";
 import { ProblemField } from "./scenes/ProblemField";
 import { RingGraph } from "./scenes/RingGraph";
-import { useStory } from "@/lib/store";
 
 /**
- * The 3D stage. Every scene stays mounted (cheap) and scales itself in
- * only while its story section is active — camera motion carries the tale.
+ * The 3D stage. Fixed behind the scrolling page; every scene reads the
+ * store's scroll progress imperatively inside useFrame (no re-renders on
+ * scroll) and reveals itself by presence.
  */
 export default function StoryCanvas() {
-  const section = useStory((s) => s.section);
-  const active = (i: number) => section === i;
-
   return (
     <Canvas
-      dpr={[1, 2]}
-      camera={{ position: [0, 3, 16], fov: 42, near: 0.1, far: 100 }}
-      gl={{ antialias: true, alpha: false }}
+      dpr={[1, 1.75]}
+      camera={{ position: [0, 2, 20], fov: 50, near: 0.1, far: 120 }}
+      gl={{ antialias: false, alpha: false, powerPreference: "high-performance" }}
+      style={{ touchAction: "pan-y" }}
     >
       <color attach="background" args={[PALETTE.background]} />
-      <fog attach="fog" args={[PALETTE.background, 20, 46]} />
+      <fog attach="fog" args={[PALETTE.background, 24, 60]} />
 
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[6, 10, 4]} intensity={1.15} />
-      <directionalLight position={[-6, -4, -6]} intensity={0.25} color={PALETTE.primary} />
+      <ambientLight intensity={0.45} />
+      <directionalLight position={[8, 12, 5]} intensity={1.2} />
+      <directionalLight position={[-8, -4, -6]} intensity={0.3} color={PALETTE.primary} />
+      <pointLight position={[0, 2, 6]} intensity={12} color={PALETTE.primary} />
 
       <CameraRig />
-      <AmbientDust />
+      <AmbientDust count={420} />
 
-      <ProblemField active={active(0)} />
-      <ClaimSpotlight active={active(1)} />
-      <NetworkTransition active={active(2)} />
-      <RingGraph active={active(3)} />
-      <CostBars active={active(4)} />
-      <AuditLedger active={active(5)} />
+      <ProblemField index={0} />
+      <ClaimSpotlight index={1} />
+      <NetworkTransition index={2} />
+      <RingGraph index={3} />
+      <CostBars index={4} />
+      <AuditLedger index={5} />
+
+      <EffectComposer multisampling={4}>
+        <Bloom intensity={0.55} luminanceThreshold={0.25} luminanceSmoothing={0.2} mipmapBlur />
+        <Vignette eskil={false} offset={0.25} darkness={0.6} />
+      </EffectComposer>
     </Canvas>
   );
 }
